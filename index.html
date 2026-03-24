@@ -10,69 +10,57 @@
 body {
   margin:0;
   font-family: Arial;
-  background:#f2f2f2;
+  background:#f4f4f4;
 }
 
 /* telas */
 .tela { display:none; padding:20px; }
 .ativa { display:block; }
 
-h2 { margin-bottom:15px; }
-
-/* inputs */
-input {
-  width:100%;
-  padding:14px;
-  margin-bottom:10px;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
-
-/* botão */
 button {
   width:100%;
-  padding:14px;
+  padding:12px;
   border:none;
   border-radius:10px;
   background:#d90429;
   color:white;
-  font-weight:bold;
+  margin-top:10px;
 }
 
-/* grid */
-.grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-}
-
-.item {
-  background:white;
-  padding:18px;
-  border-radius:14px;
-  text-align:center;
-  border:2px solid #ddd;
-  cursor:pointer;
-  transition:0.2s;
-}
-
-.item:active {
-  transform:scale(0.97);
-  background:#ffe5ea;
-}
-
-/* lista */
+/* produtos */
 .prod {
   background:white;
   padding:12px;
   border-radius:10px;
   margin-bottom:10px;
+  cursor:pointer;
 }
 
-.vencido { border-left:6px solid red; }
+/* status */
+.vencido {
+  border-left:6px solid red;
+  animation:pulse 1s infinite;
+}
+
 .perto { border-left:6px solid orange; }
 .ok { border-left:6px solid green; }
 
+@keyframes pulse {
+  0%{transform:scale(1); background:#fff;}
+  50%{transform:scale(1.02); background:#ffe5e5;}
+  100%{transform:scale(1);}
+}
+
+/* menu */
+.menu {
+  display:flex;
+  gap:10px;
+}
+
+.menu button {
+  flex:1;
+  background:#999;
+}
 </style>
 </head>
 
@@ -80,140 +68,167 @@ button {
 
 <!-- LOGIN -->
 <div class="tela ativa" id="login">
-  <h2>❤️ Zona Sul</h2>
-  <input id="nome" placeholder="Nome">
-  <input id="matricula" placeholder="Matrícula">
-  <button onclick="irCategoria()">Entrar</button>
+<h2>❤️ Zona Sul</h2>
+<input id="nome" placeholder="Nome"><br>
+<input id="mat" placeholder="Matrícula"><br>
+<button onclick="entrar()">Entrar</button>
 </div>
 
-<!-- CATEGORIA -->
-<div class="tela" id="categoria">
-  <h2>Selecionar Categoria</h2>
-  <div class="grid">
-    <div class="item" onclick="clicarCategoria('Açougue')">Açougue</div>
-    <div class="item" onclick="clicarCategoria('Laticínios')">Laticínios</div>
-    <div class="item" onclick="clicarCategoria('Bebidas')">Bebidas</div>
-    <div class="item" onclick="clicarCategoria('Padaria')">Padaria</div>
-  </div>
+<!-- HOME -->
+<div class="tela" id="home">
+<h3 id="alerta"></h3>
+
+<div class="menu">
+<button onclick="verTratados()">Tratados</button>
+<button onclick="verExcluidos()">Excluídos</button>
 </div>
 
-<!-- PRODUTOS -->
-<div class="tela" id="produtos">
-  <h2>Produtos de Alto Risco</h2>
-  <div class="grid">
-    <div class="item" onclick="clicarProduto('Azeite')">Azeite</div>
-    <div class="item" onclick="clicarProduto('Carnes')">Carnes</div>
-    <div class="item" onclick="clicarProduto('Bebidas')">Bebidas</div>
-    <div class="item" onclick="clicarProduto('Whisky')">Whisky</div>
-  </div>
+<h2>Produtos Pendentes</h2>
+<div id="lista"></div>
+
+<button onclick="novo()">Novo Cadastro</button>
 </div>
 
-<!-- DATA -->
-<div class="tela" id="dataTela">
-  <h2>Data de Validade</h2>
-  <input type="date" id="data">
-  <button onclick="cadastrar()">Cadastrar</button>
+<!-- CADASTRO -->
+<div class="tela" id="cadastro">
+<h2>Cadastro</h2>
+
+<button onclick="setProduto('Azeite')">Azeite</button>
+<button onclick="setProduto('Carnes')">Carnes</button>
+<button onclick="setProduto('Bebidas')">Bebidas</button>
+<button onclick="setProduto('Whisky')">Whisky</button>
+
+<input type="date" id="data">
+<button onclick="salvar()">Cadastrar</button>
 </div>
 
-<!-- LISTA -->
-<div class="tela" id="listaTela">
-  <h2>Produtos Cadastrados</h2>
-  <div id="lista"></div>
-  <button onclick="novo()">Novo Cadastro</button>
+<!-- TRATADOS -->
+<div class="tela" id="tratados">
+<h2>Tratados</h2>
+<div id="listaTratados"></div>
+<button onclick="voltar()">Voltar</button>
+</div>
+
+<!-- EXCLUIDOS -->
+<div class="tela" id="excluidos">
+<h2>Excluídos</h2>
+<div id="listaExcluidos"></div>
+<button onclick="voltar()">Voltar</button>
 </div>
 
 <script>
 
-let nomeUser="", matriculaUser="", categoria="", produto="";
-let banco = JSON.parse(localStorage.getItem("produtos")||"[]");
+let user="";
+let produtoSel="";
+let banco = JSON.parse(localStorage.getItem("zs")||"[]");
 
 function tela(id){
-  document.querySelectorAll(".tela").forEach(t=>t.classList.remove("ativa"));
-  document.getElementById(id).classList.add("ativa");
+ document.querySelectorAll(".tela").forEach(t=>t.classList.remove("ativa"));
+ document.getElementById(id).classList.add("ativa");
 }
 
-function irCategoria(){
-  nomeUser = document.getElementById("nome").value;
-  matriculaUser = document.getElementById("matricula").value;
-
-  if(!nomeUser || !matriculaUser){
-    alert("Preencha os dados");
-    return;
-  }
-
-  tela("categoria");
-}
-
-function clicarCategoria(c){
-  categoria = c;
-  setTimeout(()=> tela("produtos"),100);
-}
-
-function clicarProduto(p){
-  produto = p;
-  setTimeout(()=> tela("dataTela"),100);
+function entrar(){
+ user = nome.value + " ("+mat.value+")";
+ if(!nome.value||!mat.value)return alert("Preencha");
+ atualizar();
+ tela("home");
 }
 
 function dias(d){
-  let hoje=new Date(); hoje.setHours(0,0,0,0);
-  let dt=new Date(d); dt.setHours(0,0,0,0);
-  return Math.ceil((dt-hoje)/(1000*60*60*24));
+ let hoje=new Date(); hoje.setHours(0,0,0,0);
+ let dt=new Date(d); dt.setHours(0,0,0,0);
+ return Math.ceil((dt-hoje)/(1000*60*60*24));
 }
 
-function cadastrar(){
+function atualizar(){
 
-  let data = document.getElementById("data").value;
+ let lista=document.getElementById("lista");
+ lista.innerHTML="";
 
-  if(!data){
-    alert("Escolha a data");
-    return;
-  }
+ let urgentes=0;
 
-  banco.push({
-    nome:nomeUser,
-    matricula:matriculaUser,
-    categoria,
-    produto,
-    data
-  });
+ banco.filter(p=>p.status==="ativo").forEach((p,i)=>{
 
-  localStorage.setItem("produtos", JSON.stringify(banco));
+  let d=dias(p.data);
+  let cls="ok";
 
-  mostrar();
-  tela("listaTela");
+  if(d<0){cls="vencido"; urgentes++;}
+  else if(d<=3){cls="perto";}
+
+  let div=document.createElement("div");
+  div.className="prod "+cls;
+
+  div.onclick=()=>acoes(i);
+
+  div.innerHTML=`
+  <b>${p.produto}</b><br>
+  ${p.data}<br>
+  ${p.user}
+  `;
+
+  lista.appendChild(div);
+ });
+
+ alerta.innerText = urgentes>0 ? "⚠️ "+urgentes+" produtos URGENTES!" : "";
 }
 
-function mostrar(){
+function acoes(i){
 
-  let div = document.getElementById("lista");
-  div.innerHTML="";
+ let escolha = prompt("1-Tratar\n2-Lembrar\n3-Arquivar\n4-Excluir");
 
-  banco.sort((a,b)=> new Date(a.data)-new Date(b.data));
+ if(escolha==1) banco[i].status="tratado";
+ if(escolha==2) return;
+ if(escolha==3) banco[i].status="arquivado";
+ if(escolha==4) banco[i].status="excluido";
 
-  banco.forEach(p=>{
-    let d=dias(p.data);
-    let cls="ok";
-
-    if(d<0) cls="vencido";
-    else if(d<=3) cls="perto";
-
-    let el=document.createElement("div");
-    el.className="prod "+cls;
-
-    el.innerHTML=`
-    <b>${p.produto}</b><br>
-    ${p.categoria}<br>
-    ${p.data}<br>
-    ${p.nome} (${p.matricula})
-    `;
-
-    div.appendChild(el);
-  });
+ salvarBanco();
+ atualizar();
 }
 
-function novo(){
-  tela("categoria");
+function novo(){ tela("cadastro"); }
+
+function setProduto(p){ produtoSel=p; }
+
+function salvar(){
+
+ let data=document.getElementById("data").value;
+ if(!produtoSel||!data)return alert("Preencha");
+
+ banco.push({
+  produto:produtoSel,
+  data,
+  user,
+  status:"ativo"
+ });
+
+ salvarBanco();
+ atualizar();
+ tela("home");
 }
+
+function salvarBanco(){
+ localStorage.setItem("zs",JSON.stringify(banco));
+}
+
+function verTratados(){
+ let div=document.getElementById("listaTratados");
+ div.innerHTML="";
+ banco.filter(p=>p.status==="tratado").forEach(p=>{
+  div.innerHTML+=`<div class="prod">${p.produto} - ${p.data}</div>`;
+ });
+ tela("tratados");
+}
+
+function verExcluidos(){
+ let div=document.getElementById("listaExcluidos");
+ div.innerHTML="";
+ banco.filter(p=>p.status==="excluido").forEach(p=>{
+  div.innerHTML+=`<div class="prod">${p.produto} - ${p.data}</div>`;
+ });
+ tela("excluidos");
+}
+
+function voltar(){ tela("home"); }
 
 </script>
 
