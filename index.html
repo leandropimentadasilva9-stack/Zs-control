@@ -3,237 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zs Control</title>
-
-<style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0f0f0f;
-  color:white;
-}
-
-/* LOGIN */
-#login {
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-  text-align:center;
-}
-
-.logo {
-  font-size:40px;
-  color:#ff2d55;
-}
-
-input {
-  padding:12px;
-  margin:5px;
-  border:none;
-  border-radius:10px;
-  width:80%;
-}
-
-button {
-  padding:12px;
-  border:none;
-  border-radius:10px;
-  background:#ff2d55;
-  color:white;
-  width:80%;
-  font-weight:bold;
-}
-
-/* APP */
-#app {
-  display:none;
-  padding:15px;
-}
-
-.card {
-  background:#1a1a1a;
-  padding:15px;
-  border-radius:15px;
-  margin-bottom:15px;
-}
-
-.grid {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.item-btn {
-  background:#2a2a2a;
-  padding:12px;
-  border-radius:10px;
-  text-align:center;
-  cursor:pointer;
-}
-
-.prod {
-  background:#2a2a2a;
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:8px;
-  border-left:5px solid #ff2d55;
-}
-</style>
-</head>
-
-<body>
-
-<!-- LOGIN -->
-<div id="login">
-  <div class="logo">❤️ Zona Sul</div>
-  <h2>Zs Control</h2>
-
-  <input id="nomeUser" placeholder="Nome">
-  <input id="matricula" placeholder="Matrícula">
-
-  <button onclick="entrar()">Entrar</button>
-</div>
-
-<!-- APP -->
-<div id="app">
-
-<h3 id="userInfo"></h3>
-
-<div class="card">
-<h3>Selecionar Categoria</h3>
-
-<div class="grid">
-<div class="item-btn" onclick="setCategoria('Açougue')">Açougue</div>
-<div class="item-btn" onclick="setCategoria('Laticínios')">Laticínios</div>
-<div class="item-btn" onclick="setCategoria('Bebidas')">Bebidas</div>
-<div class="item-btn" onclick="setCategoria('Padaria')">Padaria</div>
-</div>
-
-</div>
-
-<div class="card">
-<h3>Produtos de Alto Risco</h3>
-
-<div class="grid">
-<div class="item-btn" onclick="setProduto('Azeite')">Azeite</div>
-<div class="item-btn" onclick="setProduto('Carnes')">Carnes</div>
-<div class="item-btn" onclick="setProduto('Uísque')">Uísque</div>
-<div class="item-btn" onclick="setProduto('Bebidas')">Bebidas</div>
-</div>
-
-</div>
-
-<div class="card">
-<h3>Data de Validade</h3>
-<input type="date" id="data">
-<button onclick="cadastrar()">Cadastrar</button>
-</div>
-
-<div class="card">
-<h3>Produtos Cadastrados</h3>
-<div id="lista"></div>
-<button onclick="exportar()">Exportar Excel</button>
-</div>
-
-</div>
-
-<script>
-
-let usuario = "";
-let categoria = "";
-let produtoSelecionado = "";
-let produtos = [];
-
-function entrar(){
-  let nome = document.getElementById("nomeUser").value;
-  let mat = document.getElementById("matricula").value;
-
-  if(!nome || !mat){
-    alert("Preencha os dados");
-    return;
-  }
-
-  usuario = nome + " ("+mat+")";
-
-  document.getElementById("login").style.display="none";
-  document.getElementById("app").style.display="block";
-  document.getElementById("userInfo").innerText = usuario;
-}
-
-function setCategoria(c){
-  categoria = c;
-  alert("Categoria: "+c);
-}
-
-function setProduto(p){
-  produtoSelecionado = p;
-  alert("Produto: "+p);
-}
-
-function cadastrar(){
-
-  let data = document.getElementById("data").value;
-
-  if(!produtoSelecionado || !categoria || !data){
-    alert("Selecione tudo");
-    return;
-  }
-
-  produtos.push({
-    usuario,
-    categoria,
-    produto: produtoSelecionado,
-    data
-  });
-
-  render();
-}
-
-function render(){
-  let lista = document.getElementById("lista");
-  lista.innerHTML="";
-
-  produtos.forEach(p=>{
-    let div = document.createElement("div");
-    div.className="prod";
-    div.innerHTML = `
-      <b>${p.produto}</b><br>
-      ${p.categoria}<br>
-      ${p.data}
-    `;
-    lista.appendChild(div);
-  });
-}
-
-/* EXPORTAR CSV (ABRE NO EXCEL) */
-function exportar(){
-
-  let csv = "Usuario,Categoria,Produto,Data\n";
-
-  produtos.forEach(p=>{
-    csv += `${p.usuario},${p.categoria},${p.produto},${p.data}\n`;
-  });
-
-  let blob = new Blob([csv], { type: 'text/csv' });
-  let url = URL.createObjectURL(blob);
-
-  let a = document.createElement("a");
-  a.href = url;
-  a.download = "produtos.csv";
-  a.click();
-}
-
-</script>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Zs Control</title>
 
@@ -241,26 +10,28 @@ function exportar(){
 body {
   margin:0;
   font-family: Arial;
-  background:#f5f5f5;
+  background:#f2f2f2;
 }
 
 /* telas */
 .tela { display:none; padding:20px; }
 .ativa { display:block; }
 
-h2 { margin-bottom:10px; }
+h2 { margin-bottom:15px; }
 
+/* inputs */
 input {
   width:100%;
-  padding:12px;
+  padding:14px;
   margin-bottom:10px;
   border-radius:10px;
   border:1px solid #ccc;
 }
 
+/* botão */
 button {
   width:100%;
-  padding:12px;
+  padding:14px;
   border:none;
   border-radius:10px;
   background:#d90429;
@@ -272,16 +43,22 @@ button {
 .grid {
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:10px;
+  gap:12px;
 }
 
 .item {
   background:white;
-  padding:15px;
-  border-radius:12px;
+  padding:18px;
+  border-radius:14px;
   text-align:center;
-  border:2px solid #eee;
+  border:2px solid #ddd;
   cursor:pointer;
+  transition:0.2s;
+}
+
+.item:active {
+  transform:scale(0.97);
+  background:#ffe5ea;
 }
 
 /* lista */
@@ -292,9 +69,9 @@ button {
   margin-bottom:10px;
 }
 
-.vencido { border-left:5px solid red; }
-.perto { border-left:5px solid orange; }
-.ok { border-left:5px solid green; }
+.vencido { border-left:6px solid red; }
+.perto { border-left:6px solid orange; }
+.ok { border-left:6px solid green; }
 
 </style>
 </head>
@@ -313,10 +90,10 @@ button {
 <div class="tela" id="categoria">
   <h2>Selecionar Categoria</h2>
   <div class="grid">
-    <div class="item" onclick="setCategoria('Açougue')">Açougue</div>
-    <div class="item" onclick="setCategoria('Laticínios')">Laticínios</div>
-    <div class="item" onclick="setCategoria('Bebidas')">Bebidas</div>
-    <div class="item" onclick="setCategoria('Padaria')">Padaria</div>
+    <div class="item" onclick="clicarCategoria('Açougue')">Açougue</div>
+    <div class="item" onclick="clicarCategoria('Laticínios')">Laticínios</div>
+    <div class="item" onclick="clicarCategoria('Bebidas')">Bebidas</div>
+    <div class="item" onclick="clicarCategoria('Padaria')">Padaria</div>
   </div>
 </div>
 
@@ -324,10 +101,10 @@ button {
 <div class="tela" id="produtos">
   <h2>Produtos de Alto Risco</h2>
   <div class="grid">
-    <div class="item" onclick="setProduto('Azeite')">Azeite</div>
-    <div class="item" onclick="setProduto('Carnes')">Carnes</div>
-    <div class="item" onclick="setProduto('Bebidas')">Bebidas</div>
-    <div class="item" onclick="setProduto('Whisky')">Whisky</div>
+    <div class="item" onclick="clicarProduto('Azeite')">Azeite</div>
+    <div class="item" onclick="clicarProduto('Carnes')">Carnes</div>
+    <div class="item" onclick="clicarProduto('Bebidas')">Bebidas</div>
+    <div class="item" onclick="clicarProduto('Whisky')">Whisky</div>
   </div>
 </div>
 
@@ -342,109 +119,100 @@ button {
 <div class="tela" id="listaTela">
   <h2>Produtos Cadastrados</h2>
   <div id="lista"></div>
-  <button onclick="voltarInicio()">Novo Cadastro</button>
+  <button onclick="novo()">Novo Cadastro</button>
 </div>
 
 <script>
 
-let nomeUser = "";
-let matricula = "";
-let categoria = "";
-let produto = "";
-let lista = JSON.parse(localStorage.getItem("produtos")||"[]");
+let nomeUser="", matriculaUser="", categoria="", produto="";
+let banco = JSON.parse(localStorage.getItem("produtos")||"[]");
 
-function trocarTela(id){
+function tela(id){
   document.querySelectorAll(".tela").forEach(t=>t.classList.remove("ativa"));
   document.getElementById(id).classList.add("ativa");
 }
 
 function irCategoria(){
-  nomeUser = nome.value;
-  matricula = matriculaInput.value;
+  nomeUser = document.getElementById("nome").value;
+  matriculaUser = document.getElementById("matricula").value;
 
-  if(!nomeUser || !matricula){
+  if(!nomeUser || !matriculaUser){
     alert("Preencha os dados");
     return;
   }
 
-  trocarTela("categoria");
+  tela("categoria");
 }
 
-const nome = document.getElementById("nome");
-const matriculaInput = document.getElementById("matricula");
-
-function setCategoria(c){
+function clicarCategoria(c){
   categoria = c;
-  trocarTela("produtos");
+  setTimeout(()=> tela("produtos"),100);
 }
 
-function setProduto(p){
+function clicarProduto(p){
   produto = p;
-  trocarTela("dataTela");
+  setTimeout(()=> tela("dataTela"),100);
 }
 
-function dias(data){
-  let hoje = new Date(); hoje.setHours(0,0,0,0);
-  let d = new Date(data); d.setHours(0,0,0,0);
-  return Math.ceil((d-hoje)/(1000*60*60*24));
+function dias(d){
+  let hoje=new Date(); hoje.setHours(0,0,0,0);
+  let dt=new Date(d); dt.setHours(0,0,0,0);
+  return Math.ceil((dt-hoje)/(1000*60*60*24));
 }
 
 function cadastrar(){
 
-  let dataVal = document.getElementById("data").value;
+  let data = document.getElementById("data").value;
 
-  if(!dataVal){
-    alert("Selecione a data");
+  if(!data){
+    alert("Escolha a data");
     return;
   }
 
-  lista.push({
-    nome: nomeUser,
-    matricula,
+  banco.push({
+    nome:nomeUser,
+    matricula:matriculaUser,
     categoria,
     produto,
-    data: dataVal
+    data
   });
 
-  localStorage.setItem("produtos", JSON.stringify(lista));
+  localStorage.setItem("produtos", JSON.stringify(banco));
 
-  render();
-  trocarTela("listaTela");
+  mostrar();
+  tela("listaTela");
 }
 
-function render(){
+function mostrar(){
 
   let div = document.getElementById("lista");
   div.innerHTML="";
 
-  lista.sort((a,b)=> new Date(a.data)-new Date(b.data));
+  banco.sort((a,b)=> new Date(a.data)-new Date(b.data));
 
-  lista.forEach(p=>{
+  banco.forEach(p=>{
+    let d=dias(p.data);
+    let cls="ok";
 
-    let d = dias(p.data);
+    if(d<0) cls="vencido";
+    else if(d<=3) cls="perto";
 
-    let classe="ok";
+    let el=document.createElement("div");
+    el.className="prod "+cls;
 
-    if(d < 0) classe="vencido";
-    else if(d <=3) classe="perto";
-
-    let el = document.createElement("div");
-    el.className="prod "+classe;
-
-    el.innerHTML = `
-      <b>${p.produto}</b><br>
-      ${p.categoria}<br>
-      ${p.data}<br>
-      ${p.nome} (${p.matricula})
+    el.innerHTML=`
+    <b>${p.produto}</b><br>
+    ${p.categoria}<br>
+    ${p.data}<br>
+    ${p.nome} (${p.matricula})
     `;
 
     div.appendChild(el);
-
   });
 }
 
-function voltarInicio(){
-  trocarTela("categoria");
+function novo(){
+  tela("categoria");
 }
 
 </script>
