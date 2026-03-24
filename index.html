@@ -3,28 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Zs Control</title>
 
 <style>
 body {
   margin:0;
   font-family: Arial;
-  background:#f4f4f4;
+  background: linear-gradient(120deg, #ffffff, #f3f3f3);
+  animation: bg 8s infinite alternate;
+}
+
+@keyframes bg {
+  0% { background:#ffffff; }
+  100% { background:#f0f0f0; }
 }
 
 /* telas */
 .tela { display:none; padding:20px; }
 .ativa { display:block; }
 
+h2 { margin-bottom:15px; }
+
+/* inputs */
+input {
+  width:100%;
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+/* botão */
 button {
   width:100%;
-  padding:12px;
+  padding:14px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
   background:#d90429;
   color:white;
-  margin-top:10px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+/* grid */
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.item {
+  background:white;
+  padding:18px;
+  border-radius:14px;
+  text-align:center;
+  border:2px solid #ddd;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.item:hover {
+  background:#ffe5ea;
+}
+
+.selecionado {
+  background:#d90429 !important;
+  color:white;
 }
 
 /* produtos */
@@ -36,7 +80,6 @@ button {
   cursor:pointer;
 }
 
-/* status */
 .vencido {
   border-left:6px solid red;
   animation:pulse 1s infinite;
@@ -46,20 +89,14 @@ button {
 .ok { border-left:6px solid green; }
 
 @keyframes pulse {
-  0%{transform:scale(1); background:#fff;}
-  50%{transform:scale(1.02); background:#ffe5e5;}
+  0%{transform:scale(1);}
+  50%{transform:scale(1.02);}
   100%{transform:scale(1);}
 }
 
-/* menu */
-.menu {
-  display:flex;
-  gap:10px;
-}
-
-.menu button {
-  flex:1;
-  background:#999;
+.alerta {
+  color:red;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -69,57 +106,60 @@ button {
 <!-- LOGIN -->
 <div class="tela ativa" id="login">
 <h2>❤️ Zona Sul</h2>
-<input id="nome" placeholder="Nome"><br>
-<input id="mat" placeholder="Matrícula"><br>
+<input id="nome" placeholder="Nome">
+<input id="mat" placeholder="Matrícula">
 <button onclick="entrar()">Entrar</button>
+</div>
+
+<!-- CATEGORIA -->
+<div class="tela" id="categoria">
+<h2>Selecionar Categoria</h2>
+<div class="grid" id="catGrid">
+<div class="item" onclick="selectItem(this,'Açougue')">Açougue</div>
+<div class="item" onclick="selectItem(this,'Laticínios')">Laticínios</div>
+<div class="item" onclick="selectItem(this,'Bebidas')">Bebidas</div>
+<div class="item" onclick="selectItem(this,'Padaria')">Padaria</div>
+</div>
+<button onclick="proximaTela('produtos')">Continuar</button>
+</div>
+
+<!-- PRODUTOS -->
+<div class="tela" id="produtos">
+<h2>Produtos de Alto Risco</h2>
+<div class="grid" id="prodGrid">
+<div class="item" onclick="selectItem(this,'Azeite')">Azeite</div>
+<div class="item" onclick="selectItem(this,'Carnes')">Carnes</div>
+<div class="item" onclick="selectItem(this,'Bebidas')">Bebidas</div>
+<div class="item" onclick="selectItem(this,'Whisky')">Whisky</div>
+</div>
+<button onclick="proximaTela('nomeProduto')">Continuar</button>
+</div>
+
+<!-- NOME PRODUTO -->
+<div class="tela" id="nomeProduto">
+<h2>Nome do Produto</h2>
+<input id="nomeProd" placeholder="Digite o nome do produto">
+<button onclick="proximaTela('dataTela')">Continuar</button>
+</div>
+
+<!-- DATA -->
+<div class="tela" id="dataTela">
+<h2>Data de Validade</h2>
+<input type="date" id="data">
+<button onclick="cadastrar()">Cadastrar</button>
 </div>
 
 <!-- HOME -->
 <div class="tela" id="home">
-<h3 id="alerta"></h3>
-
-<div class="menu">
-<button onclick="verTratados()">Tratados</button>
-<button onclick="verExcluidos()">Excluídos</button>
-</div>
-
-<h2>Produtos Pendentes</h2>
+<h2>Produtos</h2>
+<div id="alerta" class="alerta"></div>
 <div id="lista"></div>
-
-<button onclick="novo()">Novo Cadastro</button>
-</div>
-
-<!-- CADASTRO -->
-<div class="tela" id="cadastro">
-<h2>Cadastro</h2>
-
-<button onclick="setProduto('Azeite')">Azeite</button>
-<button onclick="setProduto('Carnes')">Carnes</button>
-<button onclick="setProduto('Bebidas')">Bebidas</button>
-<button onclick="setProduto('Whisky')">Whisky</button>
-
-<input type="date" id="data">
-<button onclick="salvar()">Cadastrar</button>
-</div>
-
-<!-- TRATADOS -->
-<div class="tela" id="tratados">
-<h2>Tratados</h2>
-<div id="listaTratados"></div>
-<button onclick="voltar()">Voltar</button>
-</div>
-
-<!-- EXCLUIDOS -->
-<div class="tela" id="excluidos">
-<h2>Excluídos</h2>
-<div id="listaExcluidos"></div>
-<button onclick="voltar()">Voltar</button>
+<button onclick="novaEntrada()">Novo Cadastro</button>
 </div>
 
 <script>
 
-let user="";
-let produtoSel="";
+let user="", categoria="", produto="", nomeProduto="";
 let banco = JSON.parse(localStorage.getItem("zs")||"[]");
 
 function tela(id){
@@ -128,10 +168,30 @@ function tela(id){
 }
 
 function entrar(){
- user = nome.value + " ("+mat.value+")";
- if(!nome.value||!mat.value)return alert("Preencha");
- atualizar();
- tela("home");
+ user = nome.value+" ("+mat.value+")";
+ if(!nome.value||!mat.value) return alert("Preencha");
+ tela("categoria");
+}
+
+function selectItem(el, valor){
+ let parent = el.parentElement;
+ parent.querySelectorAll(".item").forEach(i=>i.classList.remove("selecionado"));
+ el.classList.add("selecionado");
+
+ if(parent.id==="catGrid") categoria = valor;
+ if(parent.id==="prodGrid") produto = valor;
+}
+
+function proximaTela(id){
+ if(id==="produtos" && !categoria) return alert("Escolha categoria");
+ if(id==="nomeProduto" && !produto) return alert("Escolha produto");
+
+ if(id==="dataTela"){
+   nomeProduto = document.getElementById("nomeProd").value;
+   if(!nomeProduto) return alert("Digite o nome");
+ }
+
+ tela(id);
 }
 
 function dias(d){
@@ -140,10 +200,25 @@ function dias(d){
  return Math.ceil((dt-hoje)/(1000*60*60*24));
 }
 
-function atualizar(){
+function cadastrar(){
 
- let lista=document.getElementById("lista");
- lista.innerHTML="";
+ let data = document.getElementById("data").value;
+ if(!data) return alert("Selecione a data");
+
+ banco.push({
+  user, categoria, produto, nomeProduto, data, status:"ativo"
+ });
+
+ localStorage.setItem("zs", JSON.stringify(banco));
+
+ render();
+ tela("home");
+}
+
+function render(){
+
+ let div=document.getElementById("lista");
+ div.innerHTML="";
 
  let urgentes=0;
 
@@ -155,80 +230,38 @@ function atualizar(){
   if(d<0){cls="vencido"; urgentes++;}
   else if(d<=3){cls="perto";}
 
-  let div=document.createElement("div");
-  div.className="prod "+cls;
+  let el=document.createElement("div");
+  el.className="prod "+cls;
 
-  div.onclick=()=>acoes(i);
+  el.onclick=()=>acoes(i);
 
-  div.innerHTML=`
-  <b>${p.produto}</b><br>
+  el.innerHTML=`
+  <b>${p.nomeProduto}</b><br>
+  ${p.produto} | ${p.categoria}<br>
   ${p.data}<br>
   ${p.user}
   `;
 
-  lista.appendChild(div);
+  div.appendChild(el);
  });
 
- alerta.innerText = urgentes>0 ? "⚠️ "+urgentes+" produtos URGENTES!" : "";
+ alerta.innerText = urgentes>0 ? "⚠️ "+urgentes+" produtos vencidos!" : "";
 }
 
 function acoes(i){
 
- let escolha = prompt("1-Tratar\n2-Lembrar\n3-Arquivar\n4-Excluir");
+ let op = prompt("1-Tratar\n2-Lembrar\n3-Excluir");
 
- if(escolha==1) banco[i].status="tratado";
- if(escolha==2) return;
- if(escolha==3) banco[i].status="arquivado";
- if(escolha==4) banco[i].status="excluido";
+ if(op==1) banco[i].status="tratado";
+ if(op==3) banco[i].status="excluido";
 
- salvarBanco();
- atualizar();
+ localStorage.setItem("zs", JSON.stringify(banco));
+ render();
 }
 
-function novo(){ tela("cadastro"); }
-
-function setProduto(p){ produtoSel=p; }
-
-function salvar(){
-
- let data=document.getElementById("data").value;
- if(!produtoSel||!data)return alert("Preencha");
-
- banco.push({
-  produto:produtoSel,
-  data,
-  user,
-  status:"ativo"
- });
-
- salvarBanco();
- atualizar();
- tela("home");
+function novaEntrada(){
+ tela("categoria");
 }
-
-function salvarBanco(){
- localStorage.setItem("zs",JSON.stringify(banco));
-}
-
-function verTratados(){
- let div=document.getElementById("listaTratados");
- div.innerHTML="";
- banco.filter(p=>p.status==="tratado").forEach(p=>{
-  div.innerHTML+=`<div class="prod">${p.produto} - ${p.data}</div>`;
- });
- tela("tratados");
-}
-
-function verExcluidos(){
- let div=document.getElementById("listaExcluidos");
- div.innerHTML="";
- banco.filter(p=>p.status==="excluido").forEach(p=>{
-  div.innerHTML+=`<div class="prod">${p.produto} - ${p.data}</div>`;
- });
- tela("excluidos");
-}
-
-function voltar(){ tela("home"); }
 
 </script>
 
