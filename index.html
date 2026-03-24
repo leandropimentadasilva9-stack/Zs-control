@@ -99,3 +99,220 @@ window.add = add;
 carregar();
 
 </script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zs Control Pro</title>
+
+<style>
+body {
+  margin:0;
+  font-family: Arial;
+  background:#121212;
+  color:white;
+}
+
+header {
+  background:#16a34a;
+  padding:20px;
+  font-size:22px;
+  font-weight:bold;
+}
+
+main {
+  padding:15px;
+  max-width:500px;
+  margin:auto;
+}
+
+.card {
+  background:#1e1e1e;
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:15px;
+}
+
+input, select {
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  border:none;
+  border-radius:10px;
+  background:#2a2a2a;
+  color:white;
+}
+
+button {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#16a34a;
+  color:white;
+  font-weight:bold;
+}
+
+.prod {
+  background:#2a2a2a;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.vencido {border-left:5px solid red;}
+.perto {border-left:5px solid yellow;}
+.ok {border-left:5px solid green;}
+
+.status {font-size:12px;}
+
+.remove {
+  background:red;
+  margin-top:5px;
+  font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Zs Control Pro</header>
+
+<main>
+
+<div class="card">
+<h3>Cadastrar Produto</h3>
+<input id="nome" placeholder="Nome">
+<input id="categoria" placeholder="Categoria">
+<input id="data" type="date">
+<button onclick="add()">Cadastrar</button>
+</div>
+
+<div class="card">
+<h3>Produtos</h3>
+<input id="busca" placeholder="Buscar..." oninput="render()">
+<div id="lista"></div>
+</div>
+
+</main>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔑 COLE SUA CONFIG AQUI */
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "SEU_AUTH_DOMAIN",
+  projectId: "SEU_PROJECT_ID",
+  storageBucket: "SEU_BUCKET",
+  messagingSenderId: "SEU_ID",
+  appId: "SEU_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let produtos = [];
+
+function dias(data){
+  let hoje = new Date(); hoje.setHours(0,0,0,0);
+  let d = new Date(data); d.setHours(0,0,0,0);
+  return Math.ceil((d-hoje)/(1000*60*60*24));
+}
+
+async function carregar(){
+  produtos = [];
+
+  const querySnapshot = await getDocs(collection(db, "produtos"));
+
+  querySnapshot.forEach((docItem) => {
+    produtos.push({ id: docItem.id, ...docItem.data() });
+  });
+
+  render();
+}
+
+async function add(){
+  let nome = document.getElementById("nome").value;
+  let categoria = document.getElementById("categoria").value;
+  let data = document.getElementById("data").value;
+
+  if(!nome || !data){
+    alert("Preencha os campos");
+    return;
+  }
+
+  await addDoc(collection(db, "produtos"), {
+    nome, categoria, data
+  });
+
+  document.getElementById("nome").value = "";
+  document.getElementById("categoria").value = "";
+  document.getElementById("data").value = "";
+
+  carregar();
+}
+
+async function remover(id){
+  await deleteDoc(doc(db, "produtos", id));
+  carregar();
+}
+
+function render(){
+
+  let lista = document.getElementById("lista");
+  let busca = document.getElementById("busca").value.toLowerCase();
+
+  lista.innerHTML = "";
+
+  let filtrados = produtos.filter(p =>
+    p.nome.toLowerCase().includes(busca)
+  );
+
+  filtrados.sort((a,b)=> new Date(a.data)-new Date(b.data));
+
+  filtrados.forEach((p)=>{
+
+    let d = dias(p.data);
+    let classe = "ok";
+    let status = "OK";
+
+    if(d < 0){ classe="vencido"; status="VENCIDO"; }
+    else if(d <= 3){ classe="perto"; status="Vence em "+d+" dias"; }
+
+    let div = document.createElement("div");
+    div.className = "prod "+classe;
+
+    div.innerHTML = `
+      <div>
+        <b>${p.nome}</b><br>
+        <small>${p.categoria || ""}</small><br>
+        <small>${new Date(p.data).toLocaleDateString()}</small>
+      </div>
+
+      <div>
+        <div class="status">${status}</div>
+        <button class="remove" onclick="remover('${p.id}')">Remover</button>
+      </div>
+    `;
+
+    lista.appendChild(div);
+  });
+}
+
+/* deixa funções globais */
+window.add = add;
+window.remover = remover;
+
+/* inicia */
+carregar();
+
+</script>
+
+</body>
+</html>
