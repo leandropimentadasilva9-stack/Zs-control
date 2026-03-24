@@ -1,316 +1,229 @@
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI",
-  projectId: "COLE_AQUI",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let produtos = [];
-
-function dias(d){
- let hoje=new Date(); hoje.setHours(0,0,0,0);
- let dt=new Date(d); dt.setHours(0,0,0,0);
- return Math.ceil((dt-hoje)/(1000*60*60*24));
-}
-
-async function carregar(){
-  produtos = [];
-  const querySnapshot = await getDocs(collection(db, "produtos"));
-  
-  querySnapshot.forEach((docItem) => {
-    produtos.push({ id: docItem.id, ...docItem.data() });
-  });
-
-  render();
-}
-
-async function add(){
- let nome = nomeEl.value;
- let cat = categoriaEl.value;
- let data = dataEl.value;
-
- if(!nome || !data) return alert("Preencha");
-
- await addDoc(collection(db, "produtos"), {
-   nome, cat, data
- });
-
- nomeEl.value="";
- categoriaEl.value="";
- dataEl.value="";
-
- carregar();
-}
-
-async function removeItem(id){
- await deleteDoc(doc(db, "produtos", id));
- carregar();
-}
-
-function render(){
-
- let lista=document.getElementById("lista");
- lista.innerHTML="";
-
- produtos.sort((a,b)=> new Date(a.data)-new Date(b.data));
-
- produtos.forEach((x)=>{
-
-  let d=dias(x.data);
-  let cls="ok", txt="OK";
-
-  if(d<0){cls="vencido";txt="VENCIDO";}
-  else if(d<=3){cls="perto";txt="Vence em "+d+"d";}
-
-  let div=document.createElement("div");
-  div.className="prod "+cls;
-
-  div.innerHTML=`
-  <div>
-  <b>${x.nome}</b><br>
-  <small>${x.cat||""}</small><br>
-  <small>${new Date(x.data).toLocaleDateString()}</small>
-  </div>
-
-  <div>
-  <div class="status">${txt}</div>
-  <button onclick="removeItem('${x.id}')">Remover</button>
-  </div>
-  `;
-
-  lista.appendChild(div);
- });
-
-}
-
-const nomeEl=document.getElementById("nome");
-const categoriaEl=document.getElementById("categoria");
-const dataEl=document.getElementById("data");
-
-window.add = add;
-
-carregar();
-
-</script>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zs Control Pro</title>
+<title>Zs Control</title>
 
 <style>
 body {
   margin:0;
   font-family: Arial;
-  background:#121212;
+  background:#0f0f0f;
   color:white;
 }
 
-header {
-  background:#16a34a;
-  padding:20px;
-  font-size:22px;
+/* LOGIN */
+#login {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  text-align:center;
+}
+
+.logo {
+  font-size:40px;
+  color:#ff2d55;
+}
+
+input {
+  padding:12px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  width:80%;
+}
+
+button {
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#ff2d55;
+  color:white;
+  width:80%;
   font-weight:bold;
 }
 
-main {
+/* APP */
+#app {
+  display:none;
   padding:15px;
-  max-width:500px;
-  margin:auto;
 }
 
 .card {
-  background:#1e1e1e;
+  background:#1a1a1a;
   padding:15px;
   border-radius:15px;
   margin-bottom:15px;
 }
 
-input, select {
-  width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  border:none;
-  border-radius:10px;
-  background:#2a2a2a;
-  color:white;
+.grid {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
 }
 
-button {
-  width:100%;
+.item-btn {
+  background:#2a2a2a;
   padding:12px;
-  border:none;
   border-radius:10px;
-  background:#16a34a;
-  color:white;
-  font-weight:bold;
+  text-align:center;
+  cursor:pointer;
 }
 
 .prod {
   background:#2a2a2a;
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:10px;
-  display:flex;
-  justify-content:space-between;
-}
-
-.vencido {border-left:5px solid red;}
-.perto {border-left:5px solid yellow;}
-.ok {border-left:5px solid green;}
-
-.status {font-size:12px;}
-
-.remove {
-  background:red;
-  margin-top:5px;
-  font-size:12px;
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:8px;
+  border-left:5px solid #ff2d55;
 }
 </style>
 </head>
 
 <body>
 
-<header>Zs Control Pro</header>
+<!-- LOGIN -->
+<div id="login">
+  <div class="logo">❤️ Zona Sul</div>
+  <h2>Zs Control</h2>
 
-<main>
+  <input id="nomeUser" placeholder="Nome">
+  <input id="matricula" placeholder="Matrícula">
+
+  <button onclick="entrar()">Entrar</button>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+<h3 id="userInfo"></h3>
 
 <div class="card">
-<h3>Cadastrar Produto</h3>
-<input id="nome" placeholder="Nome">
-<input id="categoria" placeholder="Categoria">
-<input id="data" type="date">
-<button onclick="add()">Cadastrar</button>
+<h3>Selecionar Categoria</h3>
+
+<div class="grid">
+<div class="item-btn" onclick="setCategoria('Açougue')">Açougue</div>
+<div class="item-btn" onclick="setCategoria('Laticínios')">Laticínios</div>
+<div class="item-btn" onclick="setCategoria('Bebidas')">Bebidas</div>
+<div class="item-btn" onclick="setCategoria('Padaria')">Padaria</div>
+</div>
+
 </div>
 
 <div class="card">
-<h3>Produtos</h3>
-<input id="busca" placeholder="Buscar..." oninput="render()">
+<h3>Produtos de Alto Risco</h3>
+
+<div class="grid">
+<div class="item-btn" onclick="setProduto('Azeite')">Azeite</div>
+<div class="item-btn" onclick="setProduto('Carnes')">Carnes</div>
+<div class="item-btn" onclick="setProduto('Uísque')">Uísque</div>
+<div class="item-btn" onclick="setProduto('Bebidas')">Bebidas</div>
+</div>
+
+</div>
+
+<div class="card">
+<h3>Data de Validade</h3>
+<input type="date" id="data">
+<button onclick="cadastrar()">Cadastrar</button>
+</div>
+
+<div class="card">
+<h3>Produtos Cadastrados</h3>
 <div id="lista"></div>
+<button onclick="exportar()">Exportar Excel</button>
 </div>
 
-</main>
+</div>
 
-<script type="module">
+<script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-/* 🔑 COLE SUA CONFIG AQUI */
-const firebaseConfig = {
-  apiKey: "SUA_API_KEY",
-  authDomain: "SEU_AUTH_DOMAIN",
-  projectId: "SEU_PROJECT_ID",
-  storageBucket: "SEU_BUCKET",
-  messagingSenderId: "SEU_ID",
-  appId: "SEU_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
+let usuario = "";
+let categoria = "";
+let produtoSelecionado = "";
 let produtos = [];
 
-function dias(data){
-  let hoje = new Date(); hoje.setHours(0,0,0,0);
-  let d = new Date(data); d.setHours(0,0,0,0);
-  return Math.ceil((d-hoje)/(1000*60*60*24));
+function entrar(){
+  let nome = document.getElementById("nomeUser").value;
+  let mat = document.getElementById("matricula").value;
+
+  if(!nome || !mat){
+    alert("Preencha os dados");
+    return;
+  }
+
+  usuario = nome + " ("+mat+")";
+
+  document.getElementById("login").style.display="none";
+  document.getElementById("app").style.display="block";
+  document.getElementById("userInfo").innerText = usuario;
 }
 
-async function carregar(){
-  produtos = [];
+function setCategoria(c){
+  categoria = c;
+  alert("Categoria: "+c);
+}
 
-  const querySnapshot = await getDocs(collection(db, "produtos"));
+function setProduto(p){
+  produtoSelecionado = p;
+  alert("Produto: "+p);
+}
 
-  querySnapshot.forEach((docItem) => {
-    produtos.push({ id: docItem.id, ...docItem.data() });
+function cadastrar(){
+
+  let data = document.getElementById("data").value;
+
+  if(!produtoSelecionado || !categoria || !data){
+    alert("Selecione tudo");
+    return;
+  }
+
+  produtos.push({
+    usuario,
+    categoria,
+    produto: produtoSelecionado,
+    data
   });
 
   render();
 }
 
-async function add(){
-  let nome = document.getElementById("nome").value;
-  let categoria = document.getElementById("categoria").value;
-  let data = document.getElementById("data").value;
-
-  if(!nome || !data){
-    alert("Preencha os campos");
-    return;
-  }
-
-  await addDoc(collection(db, "produtos"), {
-    nome, categoria, data
-  });
-
-  document.getElementById("nome").value = "";
-  document.getElementById("categoria").value = "";
-  document.getElementById("data").value = "";
-
-  carregar();
-}
-
-async function remover(id){
-  await deleteDoc(doc(db, "produtos", id));
-  carregar();
-}
-
 function render(){
-
   let lista = document.getElementById("lista");
-  let busca = document.getElementById("busca").value.toLowerCase();
+  lista.innerHTML="";
 
-  lista.innerHTML = "";
-
-  let filtrados = produtos.filter(p =>
-    p.nome.toLowerCase().includes(busca)
-  );
-
-  filtrados.sort((a,b)=> new Date(a.data)-new Date(b.data));
-
-  filtrados.forEach((p)=>{
-
-    let d = dias(p.data);
-    let classe = "ok";
-    let status = "OK";
-
-    if(d < 0){ classe="vencido"; status="VENCIDO"; }
-    else if(d <= 3){ classe="perto"; status="Vence em "+d+" dias"; }
-
+  produtos.forEach(p=>{
     let div = document.createElement("div");
-    div.className = "prod "+classe;
-
+    div.className="prod";
     div.innerHTML = `
-      <div>
-        <b>${p.nome}</b><br>
-        <small>${p.categoria || ""}</small><br>
-        <small>${new Date(p.data).toLocaleDateString()}</small>
-      </div>
-
-      <div>
-        <div class="status">${status}</div>
-        <button class="remove" onclick="remover('${p.id}')">Remover</button>
-      </div>
+      <b>${p.produto}</b><br>
+      ${p.categoria}<br>
+      ${p.data}
     `;
-
     lista.appendChild(div);
   });
 }
 
-/* deixa funções globais */
-window.add = add;
-window.remover = remover;
+/* EXPORTAR CSV (ABRE NO EXCEL) */
+function exportar(){
 
-/* inicia */
-carregar();
+  let csv = "Usuario,Categoria,Produto,Data\n";
+
+  produtos.forEach(p=>{
+    csv += `${p.usuario},${p.categoria},${p.produto},${p.data}\n`;
+  });
+
+  let blob = new Blob([csv], { type: 'text/csv' });
+  let url = URL.createObjectURL(blob);
+
+  let a = document.createElement("a");
+  a.href = url;
+  a.download = "produtos.csv";
+  a.click();
+}
 
 </script>
 
